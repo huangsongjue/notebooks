@@ -81,10 +81,10 @@ if __name__ == '__main__':
 
         # to download data for this notebook, visit https://rapidsai.github.io/demos/datasets/mortgage-data and update the following paths accordingly
         acq_data_path = "/mortgage/acq"
-        perf_data_path = "/mortgage/perf"
+        perf_data_path = "/mortgage/perf_split"
         col_names_path = "/mortgage/names.csv"
         start_year = 2000
-        end_year = 2000 # end_year is inclusive
+        end_year = 2002 # end_year is inclusive
         part_count = 1 # the number of data files to train against
 
 
@@ -486,17 +486,29 @@ if __name__ == '__main__':
         quarter = 1
         year = start_year
         count = 0
+
+        import fnmatch
         while year <= end_year:
             '''
             for file in glob(os.path.join(perf_data_path + "/Performance_" + str(year) + "Q" + str(quarter) + "*")):
+                print("file-->", file)
                 gpu_dfs.append(process_quarter_gpu(year=year, quarter=quarter, perf_file=file))
                 count += 1
             '''
-            #hardcode here as dmo doesn't support glob
+
+        #hardcode here as dmo doesn't support glob, assuming local data is identical to data resident on dmo:///${perf_data_path}
+            for file in os.listdir('/home/yli/nvme_ssd/songjue/mortgage/perf_split'):
+                if fnmatch.fnmatch(file, "Performance_" + str(year) + "Q" + str(quarter) + "*"):
+                    file = perf_data_path + "/" + file
+                    print("file-->", file)
+                    gpu_dfs.append(process_quarter_gpu(year=year, quarter=quarter, perf_file=file))
+                    count += 1
+            '''
             file = os.path.join(perf_data_path + "/Performance_" + str(year) + "Q" + str(quarter) + ".txt")
             print("file-->", file)
             gpu_dfs.append(process_quarter_gpu(year=year, quarter=quarter, perf_file=file))
             count += 1
+            '''
 
             quarter += 1
             if quarter == 5:

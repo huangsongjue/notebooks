@@ -85,8 +85,8 @@ if __name__ == '__main__':
         perf_data_path = "/home/yli/nvme_ssd/songjue/mortgage/perf_split"
         col_names_path = "/home/yli/nvme_ssd/songjue/mortgage/names.csv"
         start_year = 2001
-        end_year = 2001 # end_year is inclusive
-        part_count = 5 # the number of data files to train against
+        end_year = 2002  # end_year is inclusive
+        part_count = 1 # the number of data files to train against
 
 
         # In[ ]:
