@@ -57,6 +57,9 @@ from glob import glob
 import os
 
 import time
+import argparse
+
+
 # In[ ]:
 
 
@@ -64,28 +67,40 @@ import subprocess
 
 if __name__ == '__main__':
         __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"
+        '''
         cmd = "hostname --all-ip-addresses"
         process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
         IPADDR = str(output.decode()).split()[0]
+        '''
+        parser = argparse.ArgumentParser(description="Mortgage")
+        parser.add_argument('--ip',  dest='ip',  type=str, default="localhost", help='IP address of Dask Scheduler)')
+        parser.add_argument('--port', dest='port', type=int, default=5555, help='scheduler_port')            
+        parser.add_argument('--acq',  dest='acq',  type=str, default="", help='acq path')        
+        parser.add_argument('--perf',  dest='perf',  type=str, default="", help='perf path')        
+        parser.add_argument('--names',  dest='names',  type=str, default="", help='names.csv path')            
+        parser.add_argument('--start_year', dest='start_year', type=int, default=2000, help='start_year')        
+        parser.add_argument('--end_year', dest='end_year', type=int, default=2003, help='end_year')            
+        parser.add_argument('--part_count', dest='part_count', type=int, default=1, help='part_count') 
 
-        cluster = LocalCUDACluster(n_workers=int(os.getenv('DASK_WORKERS_NUM')), ip=IPADDR)
+        args = parser.parse_args()
+
+        cluster = LocalCUDACluster(n_workers=int(os.getenv('DASK_WORKERS_NUM')), ip=args.ip, scheduler_port=args.port)
         client = Client(cluster)
+        time.sleep(5)
         print(client)
-
 
         # #### Define the paths to data and set the size of the dataset
 
         # In[ ]:
 
+        acq_data_path = args.acq
+        perf_data_path = args.perf
+        col_names_path = args.names
 
-        # to download data for this notebook, visit https://rapidsai.github.io/demos/datasets/mortgage-data and update the following paths accordingly
-        acq_data_path = "/mortgage/acq"
-        perf_data_path = "/mortgage/perf_split"
-        col_names_path = "/mortgage/names.csv"
-        start_year = 2000
-        end_year = 2001 # end_year is inclusive
-        part_count = 1 # the number of data files to train against
+        start_year = args.start_year
+        end_year = args.end_year        # end_year is inclusive
+        part_count = args.part_count    # the number of data files to train against
 
 
         # In[ ]:
@@ -464,10 +479,9 @@ if __name__ == '__main__':
 
 
         # ## ETL
-
         start = time.time()
         print("starting ETL-----")
-        
+
         # #### Perform all of ETL with a single call to
         # ```python
         # process_quarter_gpu(year=year, quarter=quarter, perf_file=file)
@@ -486,31 +500,11 @@ if __name__ == '__main__':
         quarter = 1
         year = start_year
         count = 0
-
-        import subprocess
-        import os
-
-        sock_path = os.getenv("DMO_SOCK_PATH")
-        if (sock_path is None):
-            sock_path = "dmo.daemon.sock.0"
-
         while year <= end_year:
-            '''
             for file in glob(os.path.join(perf_data_path + "/Performance_" + str(year) + "Q" + str(quarter) + "*")):
                 print("file-->", file)
                 gpu_dfs.append(process_quarter_gpu(year=year, quarter=quarter, perf_file=file))
                 count += 1
-            '''
-            pattern = "Performance_" + str(year) + "Q" + str(quarter)
-            files = subprocess.run("dmocli -action list -path /mortgage/perf_split -socket_path " + sock_path + " | grep " + pattern, shell=True, universal_newlines=True, stdout=subprocess.PIPE).stdout.splitlines()   
-            files.pop()
-            for file in files:
-                file = perf_data_path + "/" + file
-                print("file-->", file)
-                gpu_dfs.append(process_quarter_gpu(year=year, quarter=quarter, perf_file=file))
-                count += 1
-
-
             quarter += 1
             if quarter == 5:
                 year += 1
@@ -598,7 +592,6 @@ if __name__ == '__main__':
         gc.collect()
         wait(gpu_dfs)
 
-
         end = time.time()
         print("****Data Convertion done. Time used: ", end-start)
 
@@ -618,5 +611,3 @@ if __name__ == '__main__':
 
         end = time.time()
         print("****Training done. Time used: ", end-start)
-
-        

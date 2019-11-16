@@ -1,0 +1,9 @@
+- full-sized dataset resident at /mnt/data2/songjue/data/mortgage/fullsize
+
+### run mortgage (change params like venv, CUDA_VISIBLE_DEVICES, ip:port, path of acq, perf, names.csvas needed)
+- To run on single-node
+    songjue@bigisland: ./run.sh
+
+- To launch a scheduler (and some workers) on one node(e.g., bigisland), and launch a bunch of workers on different nodes:
+    songjue@bigisland: ./run-master.sh
+    songjue@maui: ./run-worker.h
