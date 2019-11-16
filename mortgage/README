@@ -1,4 +1,4 @@
-# full-sized dataset resident at /mnt/data2/songjue/data/mortgage/fullsize
+- full-sized dataset resident at /mnt/data2/songjue/data/mortgage/fullsize
 
 ### run mortgage (change params like venv, CUDA_VISIBLE_DEVICES, ip:port, path of acq, perf, names.csvas needed)
 - To run on single-node
